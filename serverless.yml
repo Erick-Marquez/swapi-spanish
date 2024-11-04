@@ -1,0 +1,47 @@
+service: swapi-spanish
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-west-2
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:* # Gives access to all DynamoDB actions
+      Resource:
+      - ${DYNAMODB_ARN}
+
+functions:
+  getPeople:
+    handler: dist/main.getPeople
+    events:
+      - httpApi:
+          path: /personas
+          method: get
+  getPersonById:
+    handler: dist/main.getPersonById
+    events:
+      - httpApi:
+          path: /personas/{id}
+          method: get
+  savePerson:
+    handler: dist/main.savePerson
+    events:
+      - httpApi:
+          path: /personas
+          method: post
+
+resources:
+  Resources:
+    PeopleTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${MODULE_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
